@@ -71,6 +71,17 @@ TRANSFER_VECTOR = [np.array([[-42.76412257], [-87.05105492], [255.25874521]]),
 				   np.array([[ 67.60104008], [107.77415672], [260.64276629]])]
 
 
+# camera parameters for huawei
+INTRINSIC_H = np.array([[1.99373687e+04, 0.00000000e+00, 3.11752625e+03],
+						[0.00000000e+00, 1.78368032e+04, 9.69097117e+02],
+						[0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
+
+DISTORTION_H = np.array([-1.04030801e+00, 3.33099669e+01, -8.80089426e-05,
+						 4.70328009e-03, -3.70133151e+02])
+ROTATE_VECTOR_H = [np.array([[-0.07374469], [-0.53233845], [-0.03144597]])]
+TRANSFER_VECTOR_H = [np.array([[-118.64783515], [  -2.22801881], [1005.60552746]])]
+
+
 def get_chessboard_point_pairs(dir_path, grid_size = (6, 9), 
 							   square_width = 30):
 	"""
@@ -107,12 +118,13 @@ def get_chessboard_point_pairs(dir_path, grid_size = (6, 9),
 	obj_points = []      # 3d points in real world space
 	img_points = []      # 2d points in pixel images
 
-	image_pathes = glob.glob(os.path.join(dir_path, '*.*'))
+	image_pathes = glob.glob(dir_path + '/*.*')
 	image_miss = []
 	image_success = 0    # 成功找到棋盘交点的图片数目
 	for fname in image_pathes:
 		try:
 			img = cv2.imread(fname)
+			print(img.shape)
 			gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 			
 			# find the chessboard corners
@@ -122,6 +134,9 @@ def get_chessboard_point_pairs(dir_path, grid_size = (6, 9),
 				cv2.cornerSubPix(gray_img, corners, (11, 11), (-1, -1), criteria)
 				img_points.append(corners)
 				image_success += 1
+				cv2.drawChessBoardCorners(img, grid_size, corners, ret)
+				cv2.imshow('img', img)
+				cv2.waitKey(500)
 			else:
 				image_miss.append(fname)
 
@@ -155,7 +170,8 @@ def camera_calibrate(dir_path, img_size, grid_size = (6, 9), square_width = 24,
 	tvecs = None 	# transform matrix
 
 	# we need at least 10 test patterns for camera calibration
-	if image_success < 10:
+	print(image_success)
+	if image_success < 1:
 		ret = None
 		return ret, mtx, dist, rvecs, tvecs
 
@@ -165,16 +181,57 @@ def camera_calibrate(dir_path, img_size, grid_size = (6, 9), square_width = 24,
 	return ret, mtx, dist, rvecs, tvecs
 
 
-def undistort_img(img, camera_matrix = INTRINSIC, dist_coeffs = DISTORTION, 
-				  new_camera_matrix = None):
+def undistort_img(img, alpha = 0, camera_matrix = INTRINSIC, dist_coeffs = DISTORTION):
 	"""
 	Transforms an image to compensate for lens distortion
 	
 	Parameters:
 	img: input (distorted image) image
+	alpha: free scaling parameters between 0(all the pixel in the undistorted image are 
+		   valid) and 1(all the source image pixels are retrained in the undistored image)
 	camera_matrix: the intrinsic matrix of camera
 	dist_coeffs: input vector of distortion coefficents
 	new_camera_matrix: camera matrix of the distorted image. By default, it's the
 					   same as camera intrinsic matrix but you may additionally scale
 					   and shift the result by using a different matrix
 	"""
+
+	if not isinstance(img, np.ndarray):
+		raise ValueError('The input image should be numpy.ndarray')
+
+	height, width = img.shape[:2]
+	newcameramtx, roi = cv2.getOptimalNewCameraMatrix(camera_matrix, dist_coeffs, 
+		(width,height), 0, (width,height))
+	dst = cv2.undistort(img, camera_matrix, dist_coeffs, None)
+	x, y, w, h = roi 
+
+	return dst[y: y+w, x:x+h]
+
+# img = cv2.imread('../chessboard_images/pcb.jpg')
+# # img = cv2.resize(img, (300, 400))
+# cv2.namedWindow('img', 2)
+# cv2.namedWindow('dst', 2)
+# cv2.imshow('img', img)
+# dst = undistort_img(img)
+# cv2.imshow('dst', dst)
+
+# cv2.waitKey(0)
+
+img = cv2.imread('../pcb_images/pcb1.jpg')
+height, width = img.shape[:2]
+# ret, mtx, dist, rvecs, tvecs = camera_calibrate('../chessboard_images/', (width, height))
+
+# print("ret", ret)
+# print("mtx", mtx)
+# print("dist", dist)
+# print("rvecs", rvecs)
+# print("tvecs", tvecs)
+
+dst = undistort_img(img, 0, INTRINSIC_H, DISTORTION_H)
+cv2.namedWindow('img', 2)
+cv2.namedWindow('dst', 2)
+
+cv2.imshow('img', img)
+cv2.imshow('dst', dst)
+
+cv2.waitKey(0)
