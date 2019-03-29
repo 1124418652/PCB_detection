@@ -201,7 +201,7 @@ def undistort_img(img, alpha = 0, camera_matrix = INTRINSIC, dist_coeffs = DISTO
 
 	height, width = img.shape[:2]
 	newcameramtx, roi = cv2.getOptimalNewCameraMatrix(camera_matrix, dist_coeffs, 
-		(width,height), 0, (width,height))
+		(width,height), 1, (width,height))
 	dst = cv2.undistort(img, camera_matrix, dist_coeffs, None)
 	x, y, w, h = roi 
 
@@ -227,7 +227,7 @@ height, width = img.shape[:2]
 # print("rvecs", rvecs)
 # print("tvecs", tvecs)
 
-dst = undistort_img(img, 0, INTRINSIC_H, DISTORTION_H)
+dst = undistort_img(img, 0, INTRINSIC, DISTORTION)
 cv2.namedWindow('img', 2)
 cv2.namedWindow('dst', 2)
 
