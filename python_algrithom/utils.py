@@ -90,6 +90,7 @@ def find_circles(image, mask=None, threshold=200, nmax=100,
 		cv2.circle(scores, (x, y), r, 0, -1)
 	return circles, weights
 
+
 def extract_sift_features(image, drawKP = False):
 	"""
 	使用opencv提供的sift算法进行关键点提取和sift描述子向量提取。
@@ -195,15 +196,22 @@ def rotate_pcb_image(image):
 		raise ValueError
 
 	gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-	gray_img = cv2.bilateralFilter(gray_img, 10, 50, 30)#.astype(np.int32)
+	gray_img1 = cv2.bilateralFilter(gray_img, 10, 50, 30)#.astype(np.int32)
 	# gray_img = 1 / (1 + np.exp(-gray_img + 120)) * 255
 	# # gray_img = gray_img - 100
 	# gray_img = np.where(gray_img > 0, gray_img, 0)
 	kernel = np.ones((10, 10), np.uint8)
-	gray_img = cv2.morphologyEx(gray_img, cv2.MORPH_OPEN, kernel)
-	gray_img = cv2.morphologyEx(gray_img, cv2.MORPH_DILATE, kernel)
+	gray_img = cv2.morphologyEx(gray_img1, cv2.MORPH_OPEN, kernel)
+	# gray_img = cv2.morphologyEx(gray_img, cv2.MORPH_DILATE, kernel)
+	gray_img = gray_img1- gray_img
+	ret, thresh = cv2.threshold(gray_img, 127, 255, 0)
+	_, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, 
+		cv2.CHAIN_APPROX_SIMPLE)
+	image = cv2.drawContours(image, contours, -1, (0, 255, 0), 2)
+
 	gray_img = gray_img.astype(np.uint8)
 	cv2.imshow('gray', gray_img)
+	cv2.imshow('image', image)
 
 
 if __name__ == '__main__':
@@ -211,9 +219,7 @@ if __name__ == '__main__':
 	image = cv2.imread(image_path, 1)
 	image = cv2.resize(image, (800, 600))
 
-	# circles, weights = find_circles(image)
-	# for (x, y, r) in circles:
-	# 	cv2.circle(image, (x, y), r, 0, -1)
+	
 
 	# key_points, descriptor, image = extract_sift_features(image)
 	# print(dir(key_points[0]))
@@ -222,9 +228,21 @@ if __name__ == '__main__':
 	# cv2.waitKey(0)
 
 	pcb = extract_pcb_ragion(image)
-	rotate_pcb_image(image)
+	roi = pcb.roi()
+	roi_height, roi_width = roi.shape[:2]
+	circles, weights = find_circles(roi)
+	for (x, y, r) in circles:
+		if x < 30 and y < 30 \
+			or x < 30 and y > roi_height - 30 \
+			or x > roi_width - 30 and y < 30 \
+			or x > roi_width - 30 and y > roi_height - 30:
+			cv2.circle(roi, (x, y), 1 * r, 0, -1)
+	# rotate_pcb_image(image)
 	# gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 	# thresh_img = cv2.threshold(gray_img, 120, 255, cv2.THRESH_BINARY)[1]
 	# cv2.imshow('gray_img', thresh_img)
-	# cv2.imshow('pcb', pcb.roi())
+	cv2.imshow('roi', roi)
+
+	cv2.imshow("pcb", image)
+	# cv2.imshow("roi", pcb)
 	cv2.waitKey(0)
