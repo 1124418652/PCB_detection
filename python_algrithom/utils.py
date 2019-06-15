@@ -8,6 +8,7 @@ Create on 2019/5/14
 import cv2
 import numpy as np
 from collections import deque
+import matplotlib.pyplot as plt
 
 
 def find_circles(image, mask=None, threshold=200, nmax=100,
@@ -157,6 +158,9 @@ def extract_pcb_ragion(image, limit1=50, limit2=100, threshold1=0.5,
 	h_img, s_img, v_img = hsv_img[:,:,0], hsv_img[:,:,1], hsv_img[:,:,2]
 
 	import matplotlib.pyplot as plt 
+
+	cv2.imshow("h", s_img)
+
 	h_row = []    # height维的数组，用于记录每一行的区域内像素个数
 	h_col = []    # width维的数组，用于记录每一列的区域内像素个数
 	for row in h_img:
@@ -165,6 +169,8 @@ def extract_pcb_ragion(image, limit1=50, limit2=100, threshold1=0.5,
 	for col in range(width):
 		count = ((h_img[:, col] >= limit1) & (h_img[:, col] <= limit2)).sum()
 		h_col.append(count)
+
+
 
 	row_begin = height - 1
 	row_end = 0
@@ -215,7 +221,8 @@ def rotate_pcb_image(image):
 
 
 if __name__ == '__main__':
-	image_path = '../pcb_images/pcb_inv1.jpg'
+	image_path = 'source_image/1560475733.jpg'
+	# image_path = '../pcb_images/pcb_inv1.jpg'
 	image = cv2.imread(image_path, 1)
 	image = cv2.resize(image, (800, 600))
 

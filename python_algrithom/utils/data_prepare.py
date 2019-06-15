@@ -12,7 +12,7 @@ import time
 import numpy as np
 
 
-def image_taking(save_dir=None, time_decay=500):
+def image_taking(save_dir=None, time_decay=1):
 	"""
 	负责图片的采集工作
 	Args:
