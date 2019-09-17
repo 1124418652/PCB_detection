@@ -40,7 +40,7 @@ class RansacLinear(Ransac):
 				continue
 
 			coeff_calc = lambda samples: np.linalg.svd(samples)[-1][-1, :]
-			coeff = coeff_calc(self.samples[sample_index])
+			self.coeff = coeff_calc(self.samples[sample_index])
 
 			idx += 1
 
