@@ -28,6 +28,9 @@ class RansacLinear(Ransac):
 		random_sample_array = list(np.random.randint(0, self.global_samples_num, \
 													 (self.max_iterations, sample_num)))
 
+		def is_inlier(coeff, samples, threshold):
+			return np.abs(coeff.dot())
+
 		while idx < max_iterations:
 			
 			sample_index = random_sample_array[idx]
