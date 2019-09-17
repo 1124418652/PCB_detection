@@ -289,12 +289,12 @@ if __name__ == '__main__':
 	source_points = find_position_circles(pcb_image)
 	# print(source_points)
 	# print(pcb_image.shape)
-	# for point in source_points:
-	# 	print(1)
-	# 	cv2.circle(pcb_image, point, 8, (0, 0, 255), 2)
+	for point in source_points:
+		print(1)
+		cv2.circle(pcb_image, point, 8, (0, 0, 255), 2)
 
-	dest_points = [(0, 0), (width-1, 0), (0, height-1), (width-1, height-1)]
-	pcb_image, *_ = get_perspective_result(source_points, dest_points, pcb_image)
+	# dest_points = [(0, 0), (width-1, 0), (0, height-1), (width-1, height-1)]
+	# pcb_image, *_ = get_perspective_result(source_points, dest_points, pcb_image)
 	cv2.imwrite("../../source_image/warpedImage.jpg", pcb_image)
 	cv2.imshow("pcb image", pcb_image)
 	cv2.waitKey(0)
