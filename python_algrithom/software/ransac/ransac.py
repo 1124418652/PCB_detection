@@ -5,7 +5,7 @@ Create on 2019/9/14
 @Author: xhj
 """
 
-import cv2
+import time
 import numpy as np 
 from abc import ABC, abstractmethod
 
@@ -29,6 +29,8 @@ class Ransac(ABC):
 			self.global_samples_num = len(samples)
 		self.inlier_thresh = self.global_samples_num // 4
 		self.distance_thresh = distance_thresh
+		self.coeff = None
+		self.inliers_mask = None
 
 
 	def set_random_seed(self, random_seed):
@@ -45,6 +47,11 @@ class Ransac(ABC):
 	def set_distance_thresh(self, distance_thresh):
 
 		self.distance_thresh = distance_thresh
+
+
+	def set_inlier_thresh(self, inlier_thresh):
+
+		self.inlier_thresh = inlier_thresh
 
 
 	@abstractmethod
