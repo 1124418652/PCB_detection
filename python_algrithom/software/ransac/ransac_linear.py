@@ -63,8 +63,8 @@ class RansacLinear(Ransac):
 
             coeff_calc = lambda samples: np.linalg.svd(self.wrap(samples))[-1][-1, :]
             coeff = coeff_calc(self.samples[sample_index])
-            self.inliers_mask = is_inlier(coeff, self.samples, self.distance_thresh).astype(np.int32)
-            inliers_num = np.sum(self.inliers_mask, axis=0)
+            self.inliers_mask = is_inlier(coeff, self.samples, self.distance_thresh)
+            inliers_num = np.sum(self.inliers_mask.astype(np.int32), axis=0)
 
             if inliers_num > max_inliers_num:
                 max_inliers_num = inliers_num
@@ -102,7 +102,7 @@ if __name__ == '__main__':
         ransac.set_max_iterations(200)
         a, b, c = ransac.computeModel(3)[:]
         
-        plt.plot([0, 100], [-c/b, -(c + 100 * a) / b], color=(0, 1, 0))
+        # plt.plot([0, 100], [-c/b, -(c + 100 * a) / b], color=(0, 1, 0))
         print("time used: ", time.time() - start)
         plt.show()
 
@@ -139,7 +139,9 @@ if __name__ == '__main__':
         a, b, c, d = ransac.computeModel(3)[:]
         print("time used: ", time.time() - start)
         xx, yy, zz = plot_plane(a, b, c, d)
-        ax.plot_surface(xx, yy, zz, color=(0, 1, 0, 0.5))
+        inliers = xyzs[ransac.inliers_mask]
+        # ax.scatter3D(inliers[:, 0], inliers[:, 1], inliers[:, 2], color=(1, 0, 0))
+        # ax.plot_surface(xx, yy, zz, color=(0, 1, 0, 0.5))
 
         plt.show()
 
